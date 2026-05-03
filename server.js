@@ -75,7 +75,6 @@
 // });
 
 
-
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -91,52 +90,42 @@ connectDB();
 
 const app = express();
 
-//
 // ======================
-// 🔐 CORS FIX (PRODUCTION READY)
+// 🔥 CORS (PRODUCTION SAFE)
 // ======================
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "https://home-finder-azure.vercel.app"
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // allow all in production safe mode
-      }
-    },
+    origin: "*", // allow all origins (fix mobile issue)
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-//
+// IMPORTANT: handle preflight requests
+app.options("*", cors());
+
 // ======================
 // 🔧 MIDDLEWARE
 // ======================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//
 // ======================
 // 📂 STATIC FILES
 // ======================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-//
 // ======================
 // 🚀 ROUTES
 // ======================
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/properties", require("./routes/propertyRoutes"));
+const authRoutes = require("./routes/authRoutes");
+const propertyRoutes = require("./routes/propertyRoutes");
 
-//
+app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
+
 // ======================
-// 🧪 HEALTH CHECK (RENDER IMPORTANT)
+// 🧪 HEALTH CHECK (Render)
 // ======================
 app.get("/healthz", (req, res) => {
   res.status(200).json({
@@ -145,7 +134,6 @@ app.get("/healthz", (req, res) => {
   });
 });
 
-//
 // ======================
 // 🧪 TEST ROUTE
 // ======================
@@ -153,7 +141,6 @@ app.get("/", (req, res) => {
   res.send("Backend Running 🚀");
 });
 
-//
 // ======================
 // ❌ 404 HANDLER
 // ======================
@@ -164,7 +151,6 @@ app.use((req, res) => {
   });
 });
 
-//
 // ======================
 // 🔥 GLOBAL ERROR HANDLER
 // ======================
@@ -177,7 +163,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-//
 // ======================
 // 🚀 SERVER START
 // ======================
